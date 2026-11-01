@@ -1,0 +1,15 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import crypto from 'node:crypto';
+import { fileURLToPath } from 'node:url';
+const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
+const [release,destination,baseExecutable]=process.argv.slice(2);
+if(!release||!destination||fs.existsSync(destination))throw Error('提供发布目录和一个不存在的更新输出目录');
+fs.mkdirSync(path.join(destination,'payload'),{recursive:true});
+const names=['NikoLink.exe','README.md','LICENSES.md','SHA256SUMS.txt','tools/install.ps1','tools/find-python.ps1','tools/download-media.ps1','tools/task-tool-worker.mjs','tools/asr/server.py','tools/asr/requirements.txt','tools/asr/model-hashes.json'];
+const files=names.filter(name=>name!=='SHA256SUMS.txt'||fs.existsSync(path.join(release,name))).map(name=>{const bytes=fs.readFileSync(path.join(release,name));const output=path.join(destination,'payload',name);fs.mkdirSync(path.dirname(output),{recursive:true});fs.writeFileSync(output,bytes);return {path:name,sha256:crypto.createHash('sha256').update(bytes).digest('hex')};});
+fs.writeFileSync(path.join(destination,'update.json'),JSON.stringify({application:'NikoLink',format:1,version:JSON.parse(fs.readFileSync(path.join(root,'package.json'))).version,...(baseExecutable?{baseExecutableSHA256:crypto.createHash('sha256').update(fs.readFileSync(baseExecutable)).digest('hex')}:{}),files},null,2));
+fs.writeFileSync(path.join(destination,'install-update.ps1'),'\ufeff'+fs.readFileSync(path.join(root,'tools/install-update.ps1'),'utf8').replace(/^\ufeff/,''));
+fs.writeFileSync(path.join(destination,'安装更新.cmd'),'@echo off\r\npowershell.exe -NoProfile -ExecutionPolicy Bypass -File "%~dp0install-update.ps1"\r\npause\r\n');
+fs.writeFileSync(path.join(destination,'README.md'),'# NikoLink 更新包\n\n先退出NikoLink，双击安装更新.cmd并选择安装目录。更新会备份待替换文件，不覆盖data、runtime、snowluma或已有task-tools。失败会尝试恢复；备份位于安装目录update-backups。\n\n仅安装可信官方渠道提供的更新。SHA256只检查完整性，不证明发布者身份。不会自动启动机器人。\n');
+console.log(destination);

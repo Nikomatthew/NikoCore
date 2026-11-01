@@ -1,0 +1,23 @@
+{
+  "name": "video-analysis",
+  "version": "1.0.0",
+  "description": "对工作区视频抽取前五分钟关键帧并本地转写音轨，返回分镜文件和文字，不自行调用模型或QQ。",
+  "entry": "index.mjs",
+  "permissions": [
+    "read-task-workspace",
+    "process"
+  ],
+  "timeoutSeconds": 600,
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "file": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "file"
+    ],
+    "additionalProperties": false
+  }
+}

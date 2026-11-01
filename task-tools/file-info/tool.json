@@ -1,0 +1,9 @@
+{
+  "name": "file-info",
+  "version": "1.0.0",
+  "description": "检查当前任务工作区内一个文件的大小和SHA256，不读取或返回文件正文。",
+  "entry": "index.mjs",
+  "permissions": ["read-task-workspace"],
+  "timeoutSeconds": 30,
+  "inputSchema": { "type": "object", "properties": { "file": { "type": "string", "description": "相对于任务工作区的文件路径" } }, "required": ["file"], "additionalProperties": false }
+}

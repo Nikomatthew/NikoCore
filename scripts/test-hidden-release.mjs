@@ -1,0 +1,10 @@
+import fs from 'node:fs';
+import assert from 'node:assert/strict';
+import {windowsSubsystem} from './windows-subsystem.mjs';
+const home=process.argv[2];if(!home)throw Error('请指定发行目录');
+assert.equal(windowsSubsystem(home+'/NikoLink.exe'),2,'主EXE应为Windows GUI子系统');
+assert.equal(windowsSubsystem(home+'/runtime/panel/NikoLink.Panel.exe'),2,'WebView壳应为Windows GUI子系统');
+const source=fs.readFileSync(new URL('./release-entry.cjs',import.meta.url),'utf8');
+assert.match(source,/installDependencies\(home\)/);
+assert.ok(!source.includes("{stdio:'inherit'}"));
+console.log('主EXE/面板均为GUI子系统，安装进度使用独立可见窗口。');

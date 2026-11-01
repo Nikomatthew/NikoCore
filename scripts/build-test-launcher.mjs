@@ -1,0 +1,10 @@
+import path from 'node:path';
+import fs from 'node:fs';
+import {fileURLToPath} from 'node:url';
+import {execFileSync} from 'node:child_process';
+const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..'),output=path.join(root,'dist','v3-desktop-shell-prototype');
+fs.mkdirSync(output,{recursive:true});
+execFileSync(path.join(process.env.WINDIR,'Microsoft.NET','Framework64','v4.0.30319','csc.exe'),['/nologo','/target:winexe','/platform:x64','/win32icon:'+path.join(root,'assets','nikolink.ico'),'/reference:System.Windows.Forms.dll','/out:'+path.join(output,'NikoLink-Test.exe'),path.join(root,'desktop','TestLauncher.cs')],{stdio:'inherit'});
+console.log(path.join(output,'NikoLink-Test.exe'));
+fs.copyFileSync(path.join(output,'NikoLink-Test.exe'),path.join(output,'NikoLink-Online-Test.exe'));
+console.log(path.join(output,'NikoLink-Online-Test.exe'));

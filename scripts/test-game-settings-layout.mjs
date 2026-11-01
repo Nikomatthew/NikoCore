@@ -1,0 +1,12 @@
+import fs from 'node:fs';
+import assert from 'node:assert/strict';
+const html=fs.readFileSync(new URL('../public/console-opencode.html',import.meta.url),'utf8');
+const section=html.match(/<section data-page="games" id="gameGenerateSection">([\s\S]*?)<\/section>/)?.[1];assert.ok(section);for(const id of ['gameGenerateType','gamePrompt','gameGenerate'])assert.ok(section.includes(`id="${id}"`));assert.ok(!html.includes('<h2>生成类型</h2>'));
+const js=fs.readFileSync(new URL('../public/game-console.js',import.meta.url),'utf8');assert.ok(!js.includes('deleteObserver'));assert.ok(!js.includes('saveBlocked'));assert.match(js,/blockedPlayers:blocked.value/);assert.match(js,/actions.className='actions game-card-actions'/);
+const css=fs.readFileSync(new URL('../public/dashboard.css',import.meta.url),'utf8');assert.match(css,/game-card-actions[\s\S]*gap:12px/);assert.match(html,/<summary>游戏版本与回退<\/summary>/);
+console.log('游戏设置布局检查通过：生成类型合并、单次保存权限、操作间距和高级折叠。');
+assert.ok(html.indexOf('<h2>扩展工具</h2>')>html.indexOf('<h2>图文发送</h2>'));
+const consoleJS=fs.readFileSync(new URL('../public/console-opencode.js',import.meta.url),'utf8');assert.match(consoleJS,/initAppearance\(\);[^\n]+loadTaskTools\(\)/);assert.match(consoleJS,/taskToolsSummary/);
+console.log('任务工具布局检查通过：图文发送下方，登录加载后自动读取启用状态。');
+assert.ok(!html.includes('共享服务高级操作'));for(const id of ['gameTunnelStart','gameTunnelStop','webGameStart','webGameStop'])assert.ok(!html.includes('id="'+id+'"'));assert.match(html,/id="webGameStatus"[^>]*role="status"/);assert.match(html,/name="gamePortMappings"/);assert.match(js,/暂无活跃房间/);
+console.log('网络服务检查通过：按活跃房间显示，移除手动开关，支持固定端口映射。');

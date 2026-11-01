@@ -1,0 +1,14 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import {fileURLToPath} from 'node:url';
+import {execFileSync} from 'node:child_process';
+import {build} from 'esbuild';
+import {inject} from 'postject';
+import {rcedit} from 'rcedit';
+const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
+const [release,output]=process.argv.slice(2);if(!release||!output||fs.existsSync(output))throw Error('提供发布目录与不存在的输出EXE路径');
+const dir=path.join(root,'backups','update-build-'+Date.now());fs.mkdirSync(dir,{recursive:true});
+execFileSync(process.execPath,[path.join(root,'scripts','build-update.mjs'),path.resolve(release),path.join(dir,'package')],{stdio:'inherit'});
+await build({entryPoints:[path.join(root,'scripts','update-entry.cjs')],outfile:path.join(dir,'main.cjs'),bundle:true,platform:'node',target:'node24',format:'cjs',minify:true});
+const assets={};const walk=(folder,relative='')=>{for(const entry of fs.readdirSync(folder,{withFileTypes:true})){const rel=relative?relative+'/'+entry.name:entry.name;if(entry.isDirectory())walk(path.join(folder,entry.name),rel);else if(rel==='update.json'||rel==='install-update.ps1'||rel.startsWith('payload/'))assets[rel]=path.join(folder,entry.name);}};walk(path.join(dir,'package'));
+fs.writeFileSync(path.join(dir,'sea.json'),JSON.stringify({main:'main.cjs',output:'sea.blob',disableExperimentalSEAWarning:true,useCodeCache:false,assets}));execFileSync(process.execPath,['--experimental-sea-config',path.join(dir,'sea.json')],{cwd:dir,stdio:'inherit'});fs.mkdirSync(path.dirname(path.resolve(output)),{recursive:true});fs.copyFileSync(process.execPath,output);await rcedit(output,{icon:path.join(root,'assets','nikolink.ico'),'version-string':{ProductName:'NikoLink Update',FileDescription:'NikoLink 更新程序'}});await inject(output,'NODE_SEA_BLOB',fs.readFileSync(path.join(dir,'sea.blob')),{sentinelFuse:'NODE_SEA_FUSE_fce680ab2cc467b6e072b8b5df1996b2'});console.log(execFileSync(path.resolve(output),['--self-check'],{encoding:'utf8'}));

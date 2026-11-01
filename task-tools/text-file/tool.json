@@ -1,0 +1,26 @@
+{
+  "name": "text-file",
+  "version": "1.0.0",
+  "description": "在任务工作区生成新的Markdown、TXT、JSON或CSV文本，不覆盖已有文件。",
+  "entry": "index.mjs",
+  "permissions": [
+    "write-task-workspace"
+  ],
+  "timeoutSeconds": 600,
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "name": {
+        "type": "string"
+      },
+      "text": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "name",
+      "text"
+    ],
+    "additionalProperties": false
+  }
+}

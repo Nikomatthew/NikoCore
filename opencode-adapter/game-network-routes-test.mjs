@@ -1,0 +1,10 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import {EventEmitter} from 'node:events';
+import {parseGameRoutes} from './game-network-routes.mjs';
+import {NamedGameTunnel} from './named-game-tunnel.mjs';
+test('映射支持FRP域名端口在前、换行逗号和旧配对顺序',()=>{assert.equal(parseGameRoutes('32994 https://one.example.com,19478 https://two.example.com\n29301 https://three.example.com').length,3);assert.throws(()=>parseGameRoutes('32994 https://one.example.com,32994 https://two.example.com'));assert.throws(()=>parseGameRoutes('80 https://one.example.com'));assert.deepEqual(parseGameRoutes('example.com:21000 12335')[0],{url:'http://example.com:21000',port:12335});assert.throws(()=>parseGameRoutes('invalid 23122'));});
+test('Token连接器使用HTTP2、环境变量与单一进程，不记录Token',async()=>{const root=fs.mkdtempSync(path.join(os.tmpdir(),'nikolink-named-tunnel-'));try{const exe=path.join(root,'cloudflared.exe');fs.writeFileSync(exe,'fixture');let calls=0,spec;const child=new EventEmitter();child.stdout=new EventEmitter();child.stderr=new EventEmitter();child.kill=()=>{};const tunnel=new NamedGameTunnel(root,path.join(root,'secret.json'),{settings:()=>({cloudflaredExecutable:exe}),launch:(command,args,options)=>{calls++;spec={args,options};queueMicrotask(()=>child.stderr.emit('data',Buffer.from('Registered tunnel connection')));return child;}});tunnel.setToken('fixture-token-not-real-12345');await tunnel.start();await tunnel.start();assert.equal(calls,1);assert.deepEqual(spec.args,['tunnel','--protocol','http2','--no-autoupdate','run']);assert.equal(spec.options.env.TUNNEL_TOKEN,'fixture-token-not-real-12345');assert.ok(!JSON.stringify(tunnel.view()).includes('fixture-token'));tunnel.stop();}finally{fs.rmSync(root,{recursive:true,force:true});}});

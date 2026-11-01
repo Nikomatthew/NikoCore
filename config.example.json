@@ -1,0 +1,13 @@
+{
+  "ownerQQ": "",
+  "privateQQ": [],
+  "groups": [],
+  "mediaQQ": [],
+  "persona": "",
+  "model": "provider/model",
+  "mode": "learn",
+  "learning": false,
+  "groupEnabled": false,
+  "ownerAutoTools": false,
+  "connectionNoticeEnabled": true
+}

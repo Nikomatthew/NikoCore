@@ -1,0 +1,28 @@
+{
+  "name": "screen-capture",
+  "version": "1.0.0",
+  "description": "截取主屏或全部屏幕到当前任务工作区PNG，可能包含隐私，不自行发送。",
+  "entry": "index.mjs",
+  "permissions": [
+    "screen",
+    "write-task-workspace"
+  ],
+  "timeoutSeconds": 600,
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "name": {
+        "type": "string"
+      },
+      "mode": {
+        "type": "string",
+        "enum": [
+          "Primary",
+          "All"
+        ]
+      }
+    },
+    "required": [],
+    "additionalProperties": false
+  }
+}

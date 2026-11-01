@@ -1,0 +1,10 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import {WebFlowRooms} from './web-flow-rooms.mjs';
+const game={id:'adventure',type:'web',kind:'flow',multiplayer:{enabled:true,maxPlayers:8,leaderboardField:'v_score'},commands:[{name:'/获取',cooldownSeconds:1,action:{type:'flow'}}],flow:{version:1,initial:'start',states:['start'],values:{v_score:0},actions:[{command:'/获取',from:'start',to:'start',steps:[{op:'add',field:'v_score',value:1}],reply:'{v_score}'}]}};
+test('同游戏玩家跨房间/重载沿用存档与冷却，不重复加分不泄露他人状态',()=>{
+ const dir=fs.mkdtempSync(path.join(os.tmpdir(),'niko-multi-profile-'));try{let now=1000;const rooms=new WebFlowRooms(dir,{now:()=>now});let first=rooms.act(game,'qq:123456',{operation:'create'});first=rooms.act(game,'qq:123456',{operation:'action',command:'/获取',room:first.id,requestID:'draw-0001'});const second=rooms.act(game,'qq:123456',{operation:'create'});assert.equal(second.own.flowValues.v_score,1);assert.throws(()=>rooms.act(game,'qq:123456',{operation:'action',command:'/获取',room:second.id,requestID:'draw-0002'}),/冷却/);now+=2000;let next=rooms.act(game,'qq:123456',{operation:'action',command:'/获取',room:second.id,requestID:'draw-0002'});assert.equal(next.own.flowValues.v_score,2);assert.equal(rooms.act(game,'qq:123456',{operation:'read',room:first.id}).own.flowValues.v_score,2);assert.equal(rooms.act(game,'qq:123456',{operation:'action',command:'/获取',room:first.id,requestID:'draw-0002'}).own.flowValues.v_score,2);next=rooms.act(game,'qq:234567',{operation:'join',room:second.id,requestID:'join-0001'});assert.equal(next.own.flowValues.v_score,0);assert.equal(next.saves,undefined);const restored=new WebFlowRooms(dir);assert.equal(restored.act(game,'qq:123456',{operation:'read',room:second.id}).own.flowValues.v_score,2);assert.equal(restored.act({...game,id:'different'},'qq:123456',{operation:'create'}).own.flowValues.v_score,0);}finally{fs.rmSync(dir,{recursive:true,force:true});}
+});

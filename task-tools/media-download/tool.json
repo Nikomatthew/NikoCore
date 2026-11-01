@@ -1,0 +1,32 @@
+{
+  "name": "media-download",
+  "version": "1.0.0",
+  "description": "下载公开YouTube或B站媒体，保存到任务工作区，不发送QQ。",
+  "entry": "index.mjs",
+  "permissions": [
+    "network",
+    "process",
+    "write-task-workspace"
+  ],
+  "timeoutSeconds": 600,
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "url": {
+        "type": "string"
+      },
+      "mode": {
+        "type": "string",
+        "enum": [
+          "video",
+          "audio"
+        ]
+      }
+    },
+    "required": [
+      "url",
+      "mode"
+    ],
+    "additionalProperties": false
+  }
+}

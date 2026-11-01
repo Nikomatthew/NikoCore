@@ -1,0 +1,11 @@
+import fs from 'node:fs';
+import vm from 'node:vm';
+import assert from 'node:assert/strict';
+const folder=process.argv[2];if(!folder)throw Error('请指定游戏包');
+const context={window:{}};vm.runInNewContext(fs.readFileSync(folder+'/client/js/data.js','utf8'),context);
+const EF=context.window.EF,zone=EF.ZONES.town,forge=zone.buildings.find(b=>b.type==='forge');
+const x=Math.floor(forge.x+forge.w/2),y=forge.y+forge.h;
+assert.equal(EF.TILES[zone.map[y][x]].solid,false,'铁匠铺门前地块必须可通行');
+assert.equal(EF.TILES[zone.map[y+1][x]].solid,false,'铁匠铺门前连接道路必须可通行');
+const npc=zone.npcs.find(n=>n.id==='bram');assert.ok(npc.y>forge.y+forge.h,'铁匠应站在建筑碰撞体外可达位置');assert.equal(EF.TILES[zone.map[Math.floor(npc.y)][Math.floor(npc.x)]].solid,false,'铁匠交互位置应为陆地');
+console.log('铁匠铺入口与连接道路可通行');

@@ -1,0 +1,23 @@
+{
+  "name": "audio-transcribe",
+  "version": "1.0.0",
+  "description": "本地转写任务工作区音频，返回文字和转写文件。",
+  "entry": "index.mjs",
+  "permissions": [
+    "read-task-workspace",
+    "process"
+  ],
+  "timeoutSeconds": 600,
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "file": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "file"
+    ],
+    "additionalProperties": false
+  }
+}

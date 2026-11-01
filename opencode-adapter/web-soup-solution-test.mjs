@@ -1,0 +1,9 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import {WebSocialRooms} from './web-social-rooms.mjs';
+test('网页单人海龟汤整理故事获胜且返回理由，不对普通问题直接判赢',async()=>{
+ const dir=fs.mkdtempSync(path.join(os.tmpdir(),'niko-web-soup-solution-'));try{let solved=false;const runtime=new WebSocialRooms(dir,{judge:{decide:async()=> 'yes',solve:async(room,story)=>{assert.equal(room.state.keyFacts[0],'关键原因');assert.equal(story,'我整理的故事');return {solved,reason:solved?'故事解释了关键原因及结果':'秘密汤底不应被输出'};}},config:()=>({gameMaxPlayers:30})}),game={id:'soup',kind:'turtle-soup',puzzle:{surface:'汤面',answer:'秘密汤底',keyFacts:['关键原因']}};let room=await runtime.act(game,'a',{operation:'create'});assert.match(room.id,/^\d{6}$/);assert.equal(runtime.rooms.get(room.id).maxPlayers,30);room=await runtime.act(game,'a',{operation:'ready',room:room.id,version:room.version,requestID:'ready-single'});room=await runtime.act(game,'a',{operation:'start',room:room.id,version:room.version,requestID:'start-single'});assert.equal(room.status,'playing');room=await runtime.act(game,'a',{operation:'question',room:room.id,version:room.version,text:'普通问题',requestID:'question-single'});assert.equal(room.status,'playing');room=await runtime.act(game,'a',{operation:'solve',room:room.id,version:room.version,text:'我整理的故事',requestID:'solve-wrong'});assert.ok(!JSON.stringify(room).includes('秘密汤底'));solved=true;room=await runtime.act(game,'a',{operation:'solve',room:room.id,version:room.version,text:'我整理的故事',requestID:'solve-right'});assert.equal(room.status,'finished');assert.deepEqual(room.result.winners,['a']);assert.match(room.result.explanation,/关键原因/);assert.equal(room.revealed,'秘密汤底');}finally{fs.rmSync(dir,{recursive:true,force:true});}
+});

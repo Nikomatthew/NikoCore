@@ -1,0 +1,30 @@
+{
+  "name": "nikolink",
+  "version": "0.3.0",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "description": "基于 OpenCode 的本地 QQ 助手",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "start": "node opencode-adapter/launch.mjs",
+    "test": "node --test opencode-adapter/test.mjs",
+    "privacy-check": "node scripts/privacy-check.mjs",
+    "build:release": "node scripts/build-release.mjs",
+    "build:update": "node scripts/build-update.mjs"
+  },
+  "dependencies": {
+    "@dimforge/rapier3d-compat": "0.21.0",
+    "js-yaml": "4.3.2",
+    "quickjs-emscripten": "0.32.0",
+    "three": "0.187.0"
+  },
+  "devDependencies": {
+    "esbuild": "0.28.2",
+    "png-to-ico": "3.0.2",
+    "postject": "1.0.0-alpha.6",
+    "rcedit": "5.0.2"
+  }
+}

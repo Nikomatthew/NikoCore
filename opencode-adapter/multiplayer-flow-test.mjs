@@ -1,0 +1,10 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import {WebFlowRooms} from './web-flow-rooms.mjs';
+import {validateGame} from './game-engine.mjs';
+test('多人flow共享房间独立存档、在线数、排行及组合判级，不重复抽签',()=>{
+ const dir=fs.mkdtempSync(path.join(os.tmpdir(),'niko-multi-flow-'));try{let now=1000;const runtime=new WebFlowRooms(dir,{now:()=>now,random:()=>0});const game=validateGame({format:1,id:'draw',type:'web',kind:'flow',name:'数字',initialCoins:0,multiplayer:{enabled:true,maxPlayers:8,leaderboardField:'v_score'},commands:[{name:'/抽签',description:'抽取',cooldownSeconds:1,action:{type:'flow'}}],flow:{version:1,initial:'start',states:['start'],values:{v_score:0,v_count:0},actions:[{command:'/抽签',from:'start',to:'start',steps:[{op:'random',field:'v_a',min:1,max:60},{op:'random',field:'v_b',min:1,max:20},{op:'calculate',field:'v_sum',operator:'add',fields:['v_a','v_b']},{op:'branch',field:'v_sum',compare:'lte',value:5,then:[{op:'set',field:'v_score',value:100}],else:[{op:'set',field:'v_score',value:10}]},{op:'add',field:'v_count',value:1}],reply:'稀有分{v_score}'}]}});let r=runtime.act(game,'qq:123456',{operation:'create'});r=runtime.act(game,'qq:234567',{operation:'join',room:r.id,requestID:'join-0001'});assert.equal(r.online,2);const input={operation:'action',room:r.id,command:'/抽签',requestID:'draw-0001'};r=runtime.act(game,'qq:123456',input);assert.equal(r.own.flowValues.v_score,100);assert.equal(runtime.act(game,'qq:123456',input).own.flowValues.v_count,1);const other=runtime.act(game,'qq:234567',{operation:'read',room:r.id});assert.equal(other.own.flowValues.v_score,0);assert.equal(other.leaderboard[0].player,'qq:123456');assert.throws(()=>runtime.act(game,'qq:345678',{operation:'read',room:r.id}));now+=31000;assert.equal(runtime.act(game,'qq:123456',{operation:'read',room:r.id}).online,1);const restored=new WebFlowRooms(dir);assert.equal(restored.act(game,'qq:123456',{operation:'read',room:r.id}).own.flowValues.v_count,1);}finally{fs.rmSync(dir,{recursive:true,force:true});}
+});

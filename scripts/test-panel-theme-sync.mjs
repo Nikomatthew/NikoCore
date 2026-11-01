@@ -1,0 +1,12 @@
+import fs from 'node:fs';
+import vm from 'node:vm';
+import assert from 'node:assert/strict';
+const source=fs.readFileSync(new URL('../public/panel-login.js',import.meta.url),'utf8');
+const prefix=source.slice(0,source.indexOf('  const originalFetch'));
+const listeners={},values=new Map(),root={dataset:{}};
+vm.runInNewContext(prefix+'})();',{window:{addEventListener:(name,fn)=>listeners[name]=fn},document:{documentElement:root,querySelectorAll:()=>[]},localStorage:{getItem:key=>values.get(key)}});
+values.set('nikolink-theme','light');listeners.storage({key:'nikolink-theme'});assert.equal(root.dataset.theme,'light');
+values.set('nikolink-theme','dark');listeners.storage({key:'nikolink-theme'});assert.equal(root.dataset.theme,'dark');
+values.set('nikolink-motion','off');listeners.storage({key:'nikolink-motion'});assert.equal(root.dataset.motion,'off');
+values.clear();listeners.storage({key:null});assert.equal(root.dataset.theme,'dark');assert.equal(root.dataset.motion,'on');
+console.log('跨页主题/动效同步回归通过，不修改鉴权或登录状态。');
